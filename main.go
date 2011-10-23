@@ -97,7 +97,7 @@ func sendCmd(cmd Cmd) {
 
 func reloadServer() {
     log.Println("Reloading Executable")
-    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
+    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app", "-c=server"}, os.Environ())
     if err != nil {
         fmt.Println("Error During Exec:", err)
     }
@@ -117,8 +117,7 @@ func rebuild() bool {
 }
 
 func main() {
-    cmd := flag.String("c", "server", "List o possible Commands")
-
+    cmd := flag.String("c", "rebuild", "List o possible Commands")
     flag.Parse()
     log.Println("Command: ", *cmd)
 
