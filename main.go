@@ -61,22 +61,22 @@ func main() {
     fmt.Println("Command: ", *cmd)
 
     switch (*cmd) {
-    case "server":
-        msg := openListener()
-        switch (msg) {
-        case QUIT, ERROR:
-            os.Exit(msg)
-        case RELOAD:
-            err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
-            if err != nil {
-                fmt.Println("Error During Exec:", err)
+        case "server":
+            msg := openListener()
+            switch (msg) {
+                case QUIT, ERROR:
+                    os.Exit(msg)
+                case RELOAD:
+                    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
+                    if err != nil {
+                        fmt.Println("Error During Exec:", err)
+                    }
+                    os.Exit(msg)
             }
-            os.Exit(msg)
-        }
-    case "quit":
-        sendMsg(QUIT)
-    case "reload":
-        sendMsg(RELOAD)
-    default:
+        case "quit":
+            sendMsg(QUIT)
+        case "reload":
+            sendMsg(RELOAD)
+        default:
     }
 }
