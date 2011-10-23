@@ -6,8 +6,15 @@ import (
     "net"
     "os"
     "exec"
+    "path"
     "log"
 )
+
+var exeName string
+
+func init() {
+    exeName = path.Base(os.Args[0])
+}
 
 type Cmd byte
 
@@ -35,8 +42,8 @@ const (
 )
 
 func openListener() Cmd {
-    log.Println("Opening UnixSocket /tmp/reloader-test")
-    l, err := net.Listen("unix", "/tmp/reloader-test")
+    log.Println("Opening UnixSocket /tmp/" + exeName)
+    l, err := net.Listen("unix", "/tmp/" + exeName)
     defer l.Close()
     if err != nil {
         fmt.Println("Error ListenUnix:", err)
@@ -99,17 +106,17 @@ func rebuild() bool {
 
 func reloadServer() {
     log.Println("Reloading Executable")
-    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app", "-c=server"}, os.Environ())
+    err := os.Exec(os.Args[0], os.Args, os.Environ())
     if err != nil {
         fmt.Println("Error During Exec:", err)
     }
 }
 
 func sendCmd(cmd Cmd) {
-    c, err := net.Dial("unix", "/tmp/reloader-test")
+    c, err := net.Dial("unix", "/tmp/" + exeName)
     defer c.Close()
     if err != nil {
-        fmt.Println("Error Dialing:", "/tmp/reloader-test", err)
+        fmt.Println("Error Dialing:", "/tmp/" + exeName, err)
         return
     }
 
