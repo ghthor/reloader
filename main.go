@@ -55,13 +55,13 @@ func sendMsg(msg int) {
 }
 
 func main() {
-    cmd := flag.String("c", "run", "List o possible Commands")
+    cmd := flag.String("c", "server", "List o possible Commands")
 
     flag.Parse()
     fmt.Println("Command: ", *cmd)
 
     switch (*cmd) {
-    case "run":
+    case "server":
         msg := openListener()
         switch (msg) {
         case QUIT, ERROR:
