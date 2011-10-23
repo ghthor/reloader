@@ -63,7 +63,16 @@ func main() {
     switch (*cmd) {
     case "run":
         msg := openListener()
-        os.Exit(msg)
+        switch (msg) {
+        case QUIT, ERROR:
+            os.Exit(msg)
+        case RELOAD:
+            err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
+            if err != nil {
+                fmt.Println("Error During Exec:", err)
+            }
+            os.Exit(msg)
+        }
     case "quit":
         sendMsg(QUIT)
     case "reload":
