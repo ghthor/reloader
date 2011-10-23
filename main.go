@@ -5,6 +5,8 @@ import (
     "flag"
     "net"
     "os"
+    "exec"
+    "log"
 )
 
 type Cmd byte
@@ -32,7 +34,8 @@ const (
     ERROR
 )
 
-func openListener() int {
+func openListener() Cmd {
+    log.Println("Opening UnixSocket /tmp/reloader-test")
     l, err := net.Listen("unix", "/tmp/reloader-test")
     defer l.Close()
     if err != nil {
@@ -54,15 +57,34 @@ func openListener() int {
         return ERROR
     }
 
-    fmt.Println("Read:", n, "bytes")
-    fmt.Println(msg[:n])
+    m := Cmd(msg[:n][0])
 
-    m := msg[:n][0];
+    log.Println("Received: ", m)
 
-    return int(m)
+    return m
 }
 
-func sendMsg(msg int) {
+type loopFunc func() loopFunc
+
+func runServer() loopFunc {
+    msg := openListener()
+    switch (msg) {
+    case QUIT, ERROR:
+        os.Exit(int(msg))
+    case REBUILD:
+        if !rebuild() {
+            return runServer
+        }
+        fallthrough
+    case RELOAD:
+        reloadServer()
+        os.Exit(int(msg))
+        return nil
+    }
+    return nil
+}
+
+func sendCmd(cmd Cmd) {
     c, err := net.Dial("unix", "/tmp/reloader-test")
     defer c.Close()
     if err != nil {
@@ -70,32 +92,48 @@ func sendMsg(msg int) {
         return
     }
 
-    c.Write([]byte{byte(msg)})
+    c.Write([]byte{byte(cmd)})
+}
+
+func reloadServer() {
+    log.Println("Reloading Executable")
+    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
+    if err != nil {
+        fmt.Println("Error During Exec:", err)
+    }
+}
+
+func rebuild() bool {
+    cmd := exec.Command("make")
+
+    log.Println("Rebuilding")
+    err := cmd.Run()
+    if err != nil {
+        fmt.Println("Error Running Make:", err)
+        return false
+    }
+    log.Println("Rebuild Success")
+    return true
 }
 
 func main() {
     cmd := flag.String("c", "server", "List o possible Commands")
 
     flag.Parse()
-    fmt.Println("Command: ", *cmd)
+    log.Println("Command: ", *cmd)
 
     switch (*cmd) {
         case "server":
-            msg := openListener()
-            switch (msg) {
-                case QUIT, ERROR:
-                    os.Exit(msg)
-                case RELOAD:
-                    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app"}, os.Environ())
-                    if err != nil {
-                        fmt.Println("Error During Exec:", err)
-                    }
-                    os.Exit(msg)
+            f := runServer()
+            for f != nil {
+                f = f()
             }
         case "quit":
-            sendMsg(QUIT)
+            sendCmd(QUIT)
+        case "rebuild":
+            sendCmd(REBUILD)
         case "reload":
-            sendMsg(RELOAD)
+            sendCmd(RELOAD)
         default:
     }
 }
