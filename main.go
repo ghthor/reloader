@@ -7,8 +7,27 @@ import (
     "os"
 )
 
+type Cmd byte
+
+func (c Cmd) String() string {
+    r := "Cmd["
+    switch c {
+        case QUIT:
+            return r + "quit" + "]"
+        case REBUILD:
+            return r + "rebuild" + "]"
+        case RELOAD:
+            return r + "reload" + "]"
+        case ERROR:
+            fallthrough
+        default:
+    }
+    return r + "error" + "]"
+}
+
 const (
-    QUIT = iota
+    QUIT Cmd = iota
+    REBUILD
     RELOAD
     ERROR
 )
