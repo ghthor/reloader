@@ -84,25 +84,6 @@ func runServer() loopFunc {
     return nil
 }
 
-func sendCmd(cmd Cmd) {
-    c, err := net.Dial("unix", "/tmp/reloader-test")
-    defer c.Close()
-    if err != nil {
-        fmt.Println("Error Dialing:", "/tmp/reloader-test", err)
-        return
-    }
-
-    c.Write([]byte{byte(cmd)})
-}
-
-func reloadServer() {
-    log.Println("Reloading Executable")
-    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app", "-c=server"}, os.Environ())
-    if err != nil {
-        fmt.Println("Error During Exec:", err)
-    }
-}
-
 func rebuild() bool {
     cmd := exec.Command("make")
 
@@ -116,23 +97,41 @@ func rebuild() bool {
     return true
 }
 
+func reloadServer() {
+    log.Println("Reloading Executable")
+    err := os.Exec("./reloader-test.app", []string{"./reloader-test.app", "-c=server"}, os.Environ())
+    if err != nil {
+        fmt.Println("Error During Exec:", err)
+    }
+}
+
+func sendCmd(cmd Cmd) {
+    c, err := net.Dial("unix", "/tmp/reloader-test")
+    defer c.Close()
+    if err != nil {
+        fmt.Println("Error Dialing:", "/tmp/reloader-test", err)
+        return
+    }
+
+    c.Write([]byte{byte(cmd)})
+}
+
 func main() {
     cmd := flag.String("c", "rebuild", "List o possible Commands")
     flag.Parse()
-    log.Println("Command: ", *cmd)
 
     switch (*cmd) {
-        case "server":
-            f := runServer()
-            for f != nil {
-                f = f()
-            }
         case "quit":
             sendCmd(QUIT)
         case "rebuild":
             sendCmd(REBUILD)
         case "reload":
             sendCmd(RELOAD)
+        case "server":
+            f := runServer()
+            for f != nil {
+                f = f()
+            }
         default:
     }
 }
