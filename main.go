@@ -8,8 +8,8 @@ import (
 )
 
 const (
-    RELOAD  = iota
-    QUIT
+    QUIT = iota
+    RELOAD
     ERROR
 )
 
