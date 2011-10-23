@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=t.app
+TARG=reloader-test.app
 GOFILES=\
 		main.go\
 

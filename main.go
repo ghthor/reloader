@@ -1,4 +1,73 @@
 package main
 
+import (
+    "fmt"
+    "flag"
+    "net"
+    "os"
+)
+
+const (
+    RELOAD  = iota
+    QUIT
+    ERROR
+)
+
+func openListener() int {
+    l, err := net.Listen("unix", "/tmp/reloader-test")
+    defer l.Close()
+    if err != nil {
+        fmt.Println("Error ListenUnix:", err)
+        return ERROR
+    }
+
+    c, err := l.Accept()
+    defer c.Close()
+    if err != nil {
+        fmt.Println("Error Accepting Conn:", err)
+        return ERROR
+    }
+
+    msg := make([]byte, 0, 1024)
+    n, err := c.Read(msg[:1])
+    if err != nil && err != os.EOF {
+        fmt.Println("Error Reading from Conn:", err)
+        return ERROR
+    }
+
+    fmt.Println("Read:", n, "bytes")
+    fmt.Println(msg[:n])
+
+    m := msg[:n][0];
+
+    return int(m)
+}
+
+func sendMsg(msg int) {
+    c, err := net.Dial("unix", "/tmp/reloader-test")
+    defer c.Close()
+    if err != nil {
+        fmt.Println("Error Dialing:", "/tmp/reloader-test", err)
+        return
+    }
+
+    c.Write([]byte{byte(msg)})
+}
+
 func main() {
+    cmd := flag.String("c", "run", "List o possible Commands")
+
+    flag.Parse()
+    fmt.Println("Command: ", *cmd)
+
+    switch (*cmd) {
+    case "run":
+        msg := openListener()
+        os.Exit(msg)
+    case "quit":
+        sendMsg(QUIT)
+    case "reload":
+        sendMsg(RELOAD)
+    default:
+    }
 }
