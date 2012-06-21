@@ -1,26 +1,44 @@
-TARGETS = reloader
-SOCKET = /tmp/reloader
-ALIVE = $(shell ps aux | grep -v grep | grep "reloader -c" -c)
+TARGET		= $(shell pwd | xargs basename)
+TARGET_APP	= $(TARGET).app
+TARGET_SRC	= $(shell find *.go)
+SOCKET 		= /tmp/$(TARGET_APP)
+ALIVE 		= $(shell ps aux | grep -v grep | grep "$(TARGET_APP) -c" -c)
+
+lifeBegin 	= ./$(TARGET_APP) -c server &>> $(TARGET).log &
+lifeRenew 	= ./$(TARGET_APP) -c rebuild
+lifeRefresh = ./$(TARGET_APP) -c reload
+lifeEnd 	= ./$(TARGET_APP) -c quit
+
 ifeq (0, $(ALIVE))
-	live = ./reloader -c server &> reloader.log &
+	alive_cmd 	= $(lifeBegin)
+
+	refresh_reqs 	= alive
+	refresh_cmd		=
+
+	kill_reqs	=
+	kill_cmd 	=
 else
-	live = ./reloader -c reload
+	alive_cmd 	= $(lifeRefresh)
+
+	refresh_reqs 	= $(TARGET_APP)
+	refresh_cmd		= $(lifeRefresh)
+
+	kill_reqs	= $(TARGET_APP)
+	kill_cmd 	= $(lifeEnd)
 endif
 
-alive: reloader
-	$(live)
+alive: $(TARGET_APP)
+	$(alive_cmd)
 
-$(TARGETS): reloader.go
+refresh: $(refresh_reqs) ; $(refresh_cmd)
+kill: $(kill_reqs) ; $(kill_cmd)
+
+dead: kill
+	rm -f $(TARGET_APP) $(SOCKET)
+
+$(TARGET_APP): $(TARGET_SRC)
 	go build
+	@mv $(TARGET) $(TARGET_APP)
 
-update:
-	./reloader -c rebuild
 
-dead:
-	@if [ $(ALIVE) -gt 0 ] ; then \
-		make reloader ; \
-		./reloader -c quit ; \
-	fi
-	rm -f $(TARGETS) $(SOCKET) reloader.log
-
-.PHONY: alive update dead
+.PHONY: alive refresh kill dead
