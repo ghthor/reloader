@@ -1,7 +1,9 @@
-include $(GOROOT)/src/Make.inc
+TARGETS = reloader
 
-TARG=reloader-test.app
-GOFILES=\
-		main.go\
+$(TARGETS): reloader.go
+	go build
 
-include $(GOROOT)/src/Make.cmd
+clean:
+	rm -f $(TARGETS)
+
+.PHONY: clean
