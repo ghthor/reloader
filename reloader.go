@@ -116,11 +116,11 @@ func reloadServer() {
 func sendCmd(cmd Cmd) {
 	log.Printf("Action send cmd %s", cmd.String())
 	c, err := net.Dial("unix", "/tmp/"+exeName)
-	defer c.Close()
 	if err != nil {
 		log.Println("Error", err)
 		return
 	}
+	defer c.Close()
 
 	c.Write([]byte{byte(cmd)})
 }
