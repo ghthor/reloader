@@ -1,13 +1,15 @@
 package main
 
 import (
-	"exec"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"path"
+	"syscall"
 )
 
 var exeName string
@@ -59,7 +61,7 @@ func openListener() Cmd {
 
 	msg := make([]byte, 0, 1024)
 	n, err := c.Read(msg[:1])
-	if err != nil && err != os.EOF {
+	if err != nil && err != io.EOF {
 		fmt.Println("Error Reading from Conn:", err)
 		return ERROR
 	}
@@ -106,7 +108,7 @@ func rebuild() bool {
 
 func reloadServer() {
 	log.Println("Reloading Executable")
-	err := os.Exec(os.Args[0], os.Args, os.Environ())
+	err := syscall.Exec(os.Args[0], os.Args, os.Environ())
 	if err != nil {
 		fmt.Println("Error During Exec:", err)
 	}
