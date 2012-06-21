@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -44,31 +43,31 @@ const (
 )
 
 func openListener() Cmd {
-	log.Println("Opening UnixSocket /tmp/" + exeName)
+	log.Println("Action listen unix /tmp/" + exeName)
 	l, err := net.Listen("unix", "/tmp/"+exeName)
 	defer l.Close()
 	if err != nil {
-		fmt.Println("Error ListenUnix:", err)
+		log.Println("Error", err)
 		return ERROR
 	}
 
 	c, err := l.Accept()
 	defer c.Close()
 	if err != nil {
-		fmt.Println("Error Accepting Conn:", err)
+		log.Println("Error accept unix", err)
 		return ERROR
 	}
 
 	msg := make([]byte, 0, 1024)
 	n, err := c.Read(msg[:1])
 	if err != nil && err != io.EOF {
-		fmt.Println("Error Reading from Conn:", err)
+		log.Println("Error ", err)
 		return ERROR
 	}
 
 	m := Cmd(msg[:n][0])
 
-	log.Println("Received: ", m)
+	log.Println("Received", m)
 
 	return m
 }
@@ -96,29 +95,30 @@ func runServer() loopFunc {
 func rebuild() bool {
 	cmd := exec.Command("make")
 
-	log.Println("Rebuilding")
+	log.Println("Action rebuild")
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("Error Running Make:", err)
+		log.Println("Error execute make", err)
 		return false
 	}
-	log.Println("Rebuild Success")
+	log.Println("Status rebuilt")
 	return true
 }
 
 func reloadServer() {
-	log.Println("Reloading Executable")
+	log.Println("Action reload")
 	err := syscall.Exec(os.Args[0], os.Args, os.Environ())
 	if err != nil {
-		fmt.Println("Error During Exec:", err)
+		log.Println("Error", err)
 	}
 }
 
 func sendCmd(cmd Cmd) {
+	log.Printf("Action send cmd %s", cmd.String())
 	c, err := net.Dial("unix", "/tmp/"+exeName)
 	defer c.Close()
 	if err != nil {
-		fmt.Println("Error Dialing:", "/tmp/"+exeName, err)
+		log.Println("Error", err)
 		return
 	}
 
