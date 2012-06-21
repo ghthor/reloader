@@ -93,7 +93,7 @@ func runServer() loopFunc {
 }
 
 func rebuild() bool {
-	cmd := exec.Command("make")
+	cmd := exec.Command("make", exeName)
 
 	log.Println("Action rebuild")
 	err := cmd.Run()
