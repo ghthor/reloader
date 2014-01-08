@@ -1,5 +1,5 @@
 TARGET		= $(shell pwd | xargs basename)
-TARGET_APP	= $(TARGET).app
+TARGET_APP	= $(TARGET)
 TARGET_SRC	= $(shell find *.go)
 SOCKET 		= /tmp/$(TARGET_APP)
 ALIVE 		= $(shell ps aux | grep -v grep | grep "$(TARGET_APP) -c" -c)
@@ -34,11 +34,11 @@ refresh: $(refresh_reqs) ; $(refresh_cmd)
 kill: $(kill_reqs) ; $(kill_cmd)
 
 dead: kill
-	rm -f $(TARGET_APP) $(SOCKET)
+	go clean
+	rm -f $(SOCKET)
 
 $(TARGET_APP): $(TARGET_SRC)
 	go build
-	@mv $(TARGET) $(TARGET_APP)
 
 
 .PHONY: alive refresh kill dead
