@@ -142,5 +142,7 @@ func main() {
 			f = f()
 		}
 	default:
+		log.Println("invalid command:", *cmd)
+		flag.PrintDefaults()
 	}
 }
