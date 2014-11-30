@@ -126,7 +126,7 @@ func sendCmd(cmd Cmd) {
 }
 
 func main() {
-	cmd := flag.String("c", "rebuild", "List o possible Commands")
+	cmd := flag.String("c", "rebuild", "(quit|rebuild|reload|server)")
 	flag.Parse()
 
 	switch *cmd {
